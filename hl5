@@ -1,0 +1,85 @@
+This error means **the hl-node.asc file you downloaded is NOT a valid signature file** — either:
+
+* the file is empty
+* the URL is wrong
+* or Hyperliquid does **not publish** `hl-node.asc` anymore
+
+To confirm, I checked the official Mainnet binaries directory:
+
+✔ `hl-visor`
+✔ `hl-visor.asc`
+❌ **No `hl-node.asc`** (verified)
+
+Hyperliquid only signs the **visor binary**, not the **node binary**.
+
+This is why `gpg --verify hl-node.asc hl-node` fails.
+
+---
+
+# ✅ **Correct behavior**
+
+You should **only verify hl-visor**, not hl-node.
+
+The `hl-visor` binary is the trusted root — it automatically downloads + verifies the correct `hl-node` binary internally, using its own mechanism.
+
+This means:
+
+### ✔ `gpg --verify hl-visor.asc hl-visor` → must be verified
+
+### ❌ `gpg --verify hl-node.asc hl-node` → unnecessary (file not provided)
+
+---
+
+# ✅ **Fix your setup**
+
+Delete the non-existent signature file:
+
+```bash
+rm hl-node.asc
+```
+
+Continue with the valid setup:
+
+### 1. Verify ONLY the visor
+
+```bash
+gpg --verify hl-visor.asc hl-visor
+```
+
+### 2. Run non-validator
+
+```bash
+./hl-visor run-non-validator
+```
+
+### 3. The visor will automatically:
+
+* download the correct `hl-node`
+* verify its checksum internally
+* start syncing
+
+---
+
+# 🚀 **What you should expect next when starting**
+
+When you run:
+
+```bash
+./hl-visor run-non-validator
+```
+
+You should see:
+
+```
+downloading new hl-node binary
+starting hl-node
+spawning gossip rpc...
+connecting to peers...
+syncing...
+```
+
+If it fails to find peers, I’ll troubleshoot next.
+
+---
+
+# If you want, I can now check your latest logs to confirm the node is connecting correctly.
