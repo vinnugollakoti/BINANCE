@@ -1,0 +1,100 @@
+Got it — **non-AWS server**, so only the **local firewall** matters.
+
+If `sudo ss -ltnp | grep 400` shows nothing, your node is **not binding** to ports 4001/4002.
+
+First, let's **open the ports** in Ubuntu, then ensure the node actually listens.
+
+---
+
+# ✅ **1. Open the ports in Ubuntu**
+
+### If UFW is enabled:
+
+```bash
+sudo ufw allow 4001/tcp
+sudo ufw allow 4002/tcp
+sudo ufw reload
+sudo ufw status
+```
+
+You should see:
+
+```
+4001/tcp  ALLOW  Anywhere
+4002/tcp  ALLOW  Anywhere
+```
+
+---
+
+### If UFW is *not* installed or inactive
+
+Check status:
+
+```bash
+sudo ufw status
+```
+
+If it says:
+
+```
+Status: inactive
+```
+
+→ You don’t need ufw rules.
+Move to next step.
+
+---
+
+### If the server uses **firewalld**:
+
+```bash
+sudo firewall-cmd --add-port=4001/tcp --permanent
+sudo firewall-cmd --add-port=4002/tcp --permanent
+sudo firewall-cmd --reload
+sudo firewall-cmd --list-ports
+```
+
+---
+
+# ✅ **2. Start your node**
+
+```bash
+cd ~/hl
+./hl-visor run-non-validator
+```
+
+Wait 3–5 seconds.
+
+Now check ports:
+
+```bash
+sudo ss -ltnp | grep 400
+```
+
+---
+
+# ❗ If still nothing shows:
+
+It means the node **never reached the point** where it opens ports 4001 and 4002.
+
+This happens when:
+
+* Missing `override_gossip_config.json`
+* Wrong data folder path
+* Visor JSON missing or invalid
+* Node crashes before binding ports
+
+---
+
+# ⚠️ To diagnose:
+
+Please run the node and show the **first 20 lines of logs**:
+
+```bash
+cd ~/hl
+./hl-visor run-non-validator | sed -n '1,50p'
+```
+
+This will tell me exactly why ports are not opening.
+
+Once you send the log, I will fix the exact issue.
